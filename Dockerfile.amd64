@@ -1,10 +1,10 @@
-# Built with arch: amd64 flavor: lxde image: ubuntu:24.04
+# Built with arch: amd64 flavor: lxde image: ubuntu:20.04
 #
 ################################################################################
 # base system
 ################################################################################
 
-FROM ubuntu:24.04 as system
+FROM ubuntu:20.04 as system
 
 
 
@@ -47,18 +47,22 @@ RUN apt update \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
+
+# Additional packages require ~600MB
+# libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
+
 # tini to fix subreap
 ARG TINI_VERSION=v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
 RUN chmod +x /bin/tini
 
 # ffmpeg
-RUN apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated \
-        ffmpeg \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir /usr/local/ffmpeg \
-    && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
+# RUN apt update \
+#     && apt install -y --no-install-recommends --allow-unauthenticated \
+#         ffmpeg \
+#     && rm -rf /var/lib/apt/lists/* \
+#     && mkdir /usr/local/ffmpeg \
+#     && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
 
 # python library
 COPY rootfs/usr/local/lib/web/backend/requirements.txt /tmp/
@@ -74,11 +78,15 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/* /tmp/a.txt /tmp/b.txt
 
+COPY sa-drive-linux /root/sa-drive-linux
+RUN apt-get update \
+    && apt-get install -y python3-pip python3 python3-venv unzip aria2 nano bmon htop iotop git curl wget \
+    && pip install -r /root/sa-drive-linux/requirements.txt
 
 ################################################################################
 # builder
 ################################################################################
-FROM ubuntu:24.04 as builder
+FROM ubuntu:20.04 as builder
 
 
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
@@ -88,7 +96,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates gnupg patch
 
 # nodejs
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs
 
 # yarn
