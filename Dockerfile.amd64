@@ -1,10 +1,10 @@
-# Built with arch: amd64 flavor: lxde image: ubuntu:20.04
+# Built with arch: amd64 flavor: lxde image: ubuntu:24.04
 #
 ################################################################################
 # base system
 ################################################################################
 
-FROM ubuntu:20.04 as system
+FROM ubuntu:24.04 as system
 
 
 
@@ -32,13 +32,13 @@ RUN apt update \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt update \
-    && apt install -y gpg-agent \
-    && curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && (dpkg -i ./google-chrome-stable_current_amd64.deb || apt-get install -fy) \
-    && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add \
-    && rm google-chrome-stable_current_amd64.deb \
-    && rm -rf /var/lib/apt/lists/*
+# RUN apt update \
+#     && apt install -y gpg-agent \
+#     && curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+#     && (dpkg -i ./google-chrome-stable_current_amd64.deb || apt-get install -fy) \
+#     && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add \
+#     && rm google-chrome-stable_current_amd64.deb \
+#     && rm -rf /var/lib/apt/lists/*
 
 RUN apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
@@ -46,10 +46,6 @@ RUN apt update \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
-
-
-# Additional packages require ~600MB
-# libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
 
 # tini to fix subreap
 ARG TINI_VERSION=v0.18.0
@@ -82,7 +78,7 @@ RUN apt-get update \
 ################################################################################
 # builder
 ################################################################################
-FROM ubuntu:20.04 as builder
+FROM ubuntu:24.04 as builder
 
 
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
@@ -114,7 +110,7 @@ RUN sed -i 's#app/locale/#novnc/app/locale/#' /src/web/dist/static/novnc/app/ui.
 # merge
 ################################################################################
 FROM system
-LABEL maintainer="fcwu.tw@gmail.com"
+LABEL maintainer="losenhan1@gmail.com"
 
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
 COPY rootfs /
